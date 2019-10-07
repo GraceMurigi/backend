@@ -42,13 +42,13 @@ exports.login = (req, res, next) => {
 				(valid) => {
 					if (!valid) {
 						return res.status(401).json({
-							error: Error('Incorrect password!')
+							error: new Error('Incorrect password!')
 						});
 					}
 					const token = jwt.sign(
-						{ userId: user._id}, 
+						{ userId: user._id }, 
 						'RANDOM_TOKEN_SECRET', 
-						{ expressIn: '24h'});
+						{ expiresIn: '24h' });
 					res.status(200).json({
 						userId: user._id,
 						token: token
@@ -69,4 +69,4 @@ exports.login = (req, res, next) => {
 			});
 		}
 	);
-};
+}

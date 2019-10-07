@@ -12,10 +12,14 @@ const mongoose = require('mongoose');
 const stuffRoutes = require('./routes/stuff'); 
 const userRoutes = require('./routes/user'); 
 
+const path = require('path'); 
+
 
 const app = express();
 
-mongoose.connect('mongodb+srv://grace:G8cDRBmi75aa2MgB@cluster0-9h4kg.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true })
+mongoose.connect('mongodb+srv://grace:G8cDRBmi75aa2MgB@cluster0-9h4kg.mongodb.net/test?retryWrites=true&w=majority',
+ { useNewUrlParser: true,
+   useUnifiedTopology: true })
 .then(() => {
 	console.log('successfully connceted to MongoDB Atlas');
 })
@@ -32,6 +36,8 @@ app.use((req, res, next) => {
 });
 
 app.use(bodyParser.json()); 
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // register the imported routes 
 app.use('/api/stuff', stuffRoutes);

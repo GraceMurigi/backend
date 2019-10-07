@@ -1,6 +1,7 @@
 const http = require('http');
 const app = require('./app');
 
+// returns a valid port whether provided as a number or string 
 const normalizePort = val => {
   const port = parseInt(val, 10);
 

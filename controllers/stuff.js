@@ -1,13 +1,17 @@
 // business logic 
 const Thing = require('../models/thing'); 
+// node file system
+const fs = require('fs'); 
 
 exports.createThing = (req, res, next) => {
+  req.body.thing = JSON.parse(req.body.thing); 
+  const url = req.protocol + '://' + req.get('host'); 
 	const thing = new Thing({
-		title: req.body.title, 
-		description: req.body.description, 
-		imageUrl: req.body.imageUrl,
-		price: req.body.price, 
-		userId: req.body.userId
+		title: req.body.thing.title, 
+		description: req.body.thing.description, 
+		imageUrl: url + '/images/' + req.file.filename,
+		price: req.body.thing.price, 
+		userId: req.body.thing.userId
 	});
 	thing.save().then(
 		() => {
@@ -25,7 +29,7 @@ exports.createThing = (req, res, next) => {
 };
 
 exports.getOneThing = (req, res, next) => {
-	Thing.findOne({
+	Thing.findOne({ 
 		_id: req.params.id
 	}).then(
 		(thing) => {
@@ -41,14 +45,31 @@ exports.getOneThing = (req, res, next) => {
 };
 
 exports.modifyThing = (req, res, next) => {
-  const thing = new Thing({
-    _id: req.params.id,
-    title: req.body.title,
-    description: req.body.description,
-    imageUrl: req.body.imageUrl,
-    price: req.body.price,
-    userId: req.body.userId
-  });
+  // create new instance of Thing model with the received ID to avoid db update problems
+  let thing = new Thing({ _id: req.params._id });
+  // if we receive file, handle form data and generate img url 
+  if (req.file) {
+    const url = req.protocol + '://' + req.get('host');
+    req.body.thing = JSON.parse(req.body.thing);
+    thing = {
+      _id: req.params.id,
+      title: req.body.thing.title,
+      description: req.body.thing.description,
+      imageUrl: url + '/images/' + req.file.filename,
+      price: req.body.thing.price,
+      userId: req.body.thing.userId
+    };
+    // if no file received capture the request body JSON 
+  } else {
+    thing = {
+      _id: req.params.id,
+      title: req.body.title,
+      description: req.body.description,
+      imageUrl: req.body.imageUrl,
+      price: req.body.price,
+      userId: req.body.userId
+    };
+  }
   Thing.updateOne({_id: req.params.id}, thing).then(
     () => {
       res.status(201).json({
@@ -65,16 +86,26 @@ exports.modifyThing = (req, res, next) => {
 };
 
 exports.deleteThing = (req, res, next) => {
-  Thing.deleteOne({_id: req.params.id}).then(
-    () => {
-      res.status(200).json({
-        message: 'Deleted!'
-      });
-    }
-  ).catch(
-    (error) => {
-      res.status(400).json({
-        error: error
+  // get access of the thing 
+  Thing.findOne({_id: req.params.id}).then(
+    (thing) => {
+      // get filename
+      const filename = thing.imageUrl.split('/images/')[1];
+      // delete file with fs unlink 
+      fs.unlink('images/' + filename, () => {
+        Thing.deleteOne({_id: req.params.id}).then(
+          () => {
+            res.status(200).json({
+              message: 'Deleted!'
+            });
+          }
+        ).catch(
+          (error) => {
+            res.status(400).json({
+              error: error
+            });
+          }
+        );
       });
     }
   );
