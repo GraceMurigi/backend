@@ -4,17 +4,18 @@
 // express app
 const express = require('express');
 const bodyParser = require('body-parser'); 
+
 // for MongoDB
 const mongoose = require('mongoose'); 
-// for our monggose models
-// const Thing = require('./models/thing') 
-// register router 
+
+// import routes  
 const stuffRoutes = require('./routes/stuff'); 
+const userRoutes = require('./routes/user'); 
 
 
 const app = express();
 
-mongoose.connect('mongodb+srv://grace:G8cDRBmi75aa2MgB@cluster0-9h4kg.mongodb.net/test?retryWrites=true&w=majority')
+mongoose.connect('mongodb+srv://grace:G8cDRBmi75aa2MgB@cluster0-9h4kg.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true })
 .then(() => {
 	console.log('successfully connceted to MongoDB Atlas');
 })
@@ -32,7 +33,9 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json()); 
 
-app.use('/api/stuff', stuffRoutes); 
+// register the imported routes 
+app.use('/api/stuff', stuffRoutes);
+app.use('/api/auth', userRoutes); 
 
 // app.use((req, res, next) => {
 //   console.log('Request received!');
